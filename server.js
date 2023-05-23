@@ -3,8 +3,6 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const _ = require("lodash");
-const date = require(__dirname + '/date.js');
-
 
 const app = express();
 
@@ -15,6 +13,7 @@ app.use(express.static("public"));
 
 mongoose.set('strictQuery', true);
 mongoose.connect('mongodb+srv://antonellakokoko:prueba123@cluster0.glgtug6.mongodb.net/toDolistDB');
+
 
 const itemsSchema = {
   name: String
@@ -27,8 +26,12 @@ const item1 = new Item({
   name: "Welcome to your todolist!"
 });
 
+const item2 = new Item({
+  name: "Add a new task!"
+});
 
-const defaultItems = [item1];
+
+const defaultItems = [item1, item2];
 
 const listSchema = {
   name: String,
@@ -37,10 +40,18 @@ const listSchema = {
 
 const List = mongoose.model("List", listSchema);
 
+let day = "";
 
 app.get("/", function(req, res) {
 
-    const day = date.getDate();
+  const today = new Date();
+  const options = {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric"
+  };
+  day = today.toLocaleDateString("en", options);
 
   Item.find({}, function(err, foundItems){
 
@@ -54,7 +65,7 @@ app.get("/", function(req, res) {
       });
       res.redirect("/");
     } else {
-      res.render("list", {listTitle: "Today", newListItems: foundItems});
+      res.render("list", {listTitle: day, newListItems: foundItems});
     }
   });
 
@@ -94,7 +105,7 @@ app.post("/", function(req, res){
     name: itemName
   });
 
-  if (listName === "Today"){
+  if (listName === day){
     item.save();
     res.redirect("/");
   } else {
@@ -110,7 +121,7 @@ app.post("/delete", function(req, res){
   const checkedItemId = req.body.checkbox;
   const listName = req.body.listName;
 
-  if (listName === "Today") {
+  if (listName === day) {
     Item.findByIdAndRemove(checkedItemId, function(err){
       if (!err) {
         console.log("Successfully deleted checked item.");
@@ -132,6 +143,12 @@ app.get("/about", function(req, res){
   res.render("about");
 });
 
-app.listen(3000, function() {
-  console.log("Server started on port 3000");
+
+let port = process.env.PORT;
+if (port == null || port == "") {
+  port = 3000;
+}
+
+app.listen(port, function() {
+  console.log("Server has started successfully!");
 });
