@@ -12,8 +12,9 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.static("public"));
 
 mongoose.set('strictQuery', true);
-mongoose.connect('mongodb+srv://antonellakokoko:prueba123@cluster0.glgtug6.mongodb.net/toDolistDB');
 
+const dbURI = require('./config');
+mongoose.connect(dbURI);
 
 const itemsSchema = {
   name: String
